@@ -9,6 +9,7 @@ Un site web simple et élégant pour afficher toutes les webcams de surf près d
 - [Installation locale](#installation-locale)
 - [Comment trouver les URLs de webcams](#comment-trouver-les-urls-de-webcams)
 - [Ajouter des webcams](#ajouter-des-webcams)
+- [Options d'hébergement gratuites](#options-dhébergement-gratuites)
 - [Déploiement sur GitHub Pages](#déploiement-sur-github-pages)
 - [Structure du projet](#structure-du-projet)
 - [Considérations légales](#considérations-légales)
@@ -212,7 +213,125 @@ const webcams = [
 2. Rafraîchissez votre navigateur (`F5`)
 3. La nouvelle webcam devrait apparaître dans la grille
 
+## 🌐 Options d'hébergement gratuites
+
+Toutes ces options sont **100% gratuites** pour les sites statiques comme celui-ci :
+
+### Option 1 : Netlify (⭐ Recommandé - Le plus simple)
+
+**Avantages :**
+- Déploiement en 2 clics depuis GitHub
+- HTTPS automatique
+- CDN global rapide
+- Domaine personnalisé gratuit (ex: `surfcams.netlify.app`)
+- Mises à jour automatiques à chaque push
+
+**Étapes :**
+
+1. **Poussez votre code sur GitHub** (voir section GitHub Pages ci-dessous)
+
+2. **Allez sur [netlify.com](https://www.netlify.com)** et créez un compte gratuit
+
+3. **Cliquez sur "Add new site" → "Import an existing project"**
+
+4. **Connectez votre compte GitHub** et sélectionnez votre dépôt `surfcams`
+
+5. **Configurez le déploiement :**
+   - Build command : (laissez vide)
+   - Publish directory : `/` (racine)
+
+6. **Cliquez sur "Deploy site"**
+
+7. **Votre site est en ligne !** Vous obtiendrez une URL comme `surfcams-xxxxx.netlify.app`
+
+**Mises à jour automatiques :** Chaque fois que vous faites `git push`, Netlify redéploie automatiquement votre site.
+
+---
+
+### Option 2 : Vercel
+
+**Avantages :**
+- Très rapide (CDN global)
+- Déploiement automatique depuis GitHub
+- Interface moderne
+
+**Étapes :**
+
+1. Allez sur [vercel.com](https://vercel.com) et créez un compte gratuit
+2. Cliquez sur "Add New Project"
+3. Importez votre dépôt GitHub
+4. Laissez les paramètres par défaut (pas de build nécessaire)
+5. Cliquez sur "Deploy"
+
+Votre site sera disponible sur `surfcams-xxxxx.vercel.app`
+
+---
+
+### Option 3 : Cloudflare Pages
+
+**Avantages :**
+- CDN ultra-rapide (Cloudflare)
+- Bandwidth illimité
+- Déploiement depuis GitHub
+
+**Étapes :**
+
+1. Allez sur [pages.cloudflare.com](https://pages.cloudflare.com)
+2. Créez un compte gratuit
+3. Connectez votre compte GitHub
+4. Sélectionnez votre dépôt
+5. Configurez :
+   - Framework preset : None
+   - Build command : (laissez vide)
+   - Build output directory : `/`
+6. Cliquez sur "Save and Deploy"
+
+---
+
+### Option 4 : Surge.sh (Déploiement via ligne de commande)
+
+**Avantages :**
+- Très simple
+- Pas besoin de compte GitHub public
+- Domaine gratuit `.surge.sh`
+
+**Étapes :**
+
+1. **Installez Surge :**
+   ```bash
+   npm install -g surge
+   ```
+
+2. **Dans le dossier de votre projet, déployez :**
+   ```bash
+   cd "/Users/damien.thioulouse/codebase perso/surfcams"
+   surge
+   ```
+
+3. **Suivez les instructions :**
+   - Créez un compte (gratuit)
+   - Choisissez un nom de domaine (ex: `surfcams-biarritz.surge.sh`)
+   - C'est tout !
+
+**Pour mettre à jour :** Relancez simplement `surge` dans le dossier.
+
+---
+
+### Comparaison rapide
+
+| Service | Difficulté | Domaine gratuit | Déploiement auto |
+|---------|-----------|-----------------|------------------|
+| **Netlify** | ⭐ Facile | ✅ Oui | ✅ Oui |
+| **Vercel** | ⭐ Facile | ✅ Oui | ✅ Oui |
+| **Cloudflare Pages** | ⭐⭐ Moyen | ✅ Oui | ✅ Oui |
+| **Surge.sh** | ⭐⭐ Moyen | ✅ Oui | ❌ Non |
+| **GitHub Pages** | ⭐⭐ Moyen | ✅ Oui | ✅ Oui |
+
+**Notre recommandation :** Netlify est le plus simple et le plus adapté pour ce projet.
+
 ## 📤 Déploiement sur GitHub Pages
+
+**Note :** GitHub Pages est **gratuit** pour les dépôts publics. Si vous préférez une alternative, consultez la section [Options d'hébergement gratuites](#options-dhébergement-gratuites) ci-dessus.
 
 ### Étape 1 : Créer un dépôt GitHub
 
