@@ -1,0 +1,356 @@
+// Webcam data structure
+// Webcams extracted from https://www.anglet-tourisme.com/webcams/
+const webcams = [
+    {
+        id: 1,
+        name: "Plage de la Petite Chambre d'Amour",
+        location: "Anglet",
+        streamUrl: "https://pv.viewsurf.com/1922/Anglet-La-petit-chambre-d-amour",
+        streamType: "iframe"
+    },
+    {
+        id: 2,
+        name: "Plage du Club",
+        location: "Anglet",
+        streamUrl: "https://pv.viewsurf.com/2126/Anglet-Plage-du-Club",
+        streamType: "iframe"
+    },
+    {
+        id: 3,
+        name: "Plage des Sables d'Or",
+        location: "Anglet",
+        streamUrl: "https://pv.viewsurf.com/2128/Anglet-Plage-des-Sables-d-Or",
+        streamType: "iframe"
+    },
+    {
+        id: 4,
+        name: "Plages des Sables d'Or, de Marinella et des Corsaires",
+        location: "Anglet",
+        streamUrl: "https://pv.viewsurf.com/2130/Anglet-Panoramique-Sables-d-Or-Marinella-Corsaires",
+        streamType: "iframe"
+    },
+    {
+        id: 5,
+        name: "Plage de l'Océan",
+        location: "Anglet",
+        streamUrl: "https://pv.viewsurf.com/774/Anglet-Plage-de-l-Ocean",
+        streamType: "iframe"
+    },
+    {
+        id: 6,
+        name: "Plage des Cavaliers",
+        location: "Anglet",
+        streamUrl: "https://pv.viewsurf.com/1994/Anglet-Plage-des-Cavaliers",
+        streamType: "iframe"
+    },
+    {
+        id: 7,
+        name: "Plage de La Barre (et embouchure de l'Adour)",
+        location: "Anglet",
+        streamUrl: "https://pv.viewsurf.com/2134/Anglet-Plage-de-La-Barre-et-embouchure-de-l-Adour",
+        streamType: "iframe"
+    },
+    {
+        id: 8,
+        name: "Panoramique de la Chambre d'Amour",
+        location: "Anglet",
+        streamUrl: "https://www.skaping.com/anglet/chambre-d-amour",
+        streamType: "iframe"
+    }
+];
+
+// Initialize the webcam grid when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    renderWebcamGrid();
+});
+
+/**
+ * Renders all webcams in the grid
+ */
+function renderWebcamGrid() {
+    const grid = document.getElementById('webcam-grid');
+    
+    if (!grid) {
+        console.error('Webcam grid container not found');
+        return;
+    }
+
+    // Clear existing content
+    grid.innerHTML = '';
+
+    if (webcams.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <p style="font-size: 1.2rem; color: #666; margin-bottom: 1rem;">Aucune webcam configurée</p>
+                <p style="color: #999;">Consultez le README.md pour savoir comment ajouter des webcams.</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Create a card for each webcam
+    webcams.forEach(webcam => {
+        const card = createWebcamCard(webcam);
+        grid.appendChild(card);
+    });
+}
+
+/**
+ * Creates a webcam card element
+ * @param {Object} webcam - Webcam data object
+ * @returns {HTMLElement} - The created card element
+ */
+function createWebcamCard(webcam) {
+    const card = document.createElement('div');
+    card.className = 'webcam-card';
+    card.setAttribute('data-webcam-id', webcam.id);
+
+    // Card header with title and location
+    const header = document.createElement('div');
+    header.className = 'webcam-header';
+    header.innerHTML = `
+        <div class="webcam-title">${escapeHtml(webcam.name)}</div>
+        <div class="webcam-location">${escapeHtml(webcam.location)}</div>
+    `;
+
+    // Card content with stream
+    const content = document.createElement('div');
+    content.className = 'webcam-content';
+    
+    // Add loading state initially
+    const loading = document.createElement('div');
+    loading.className = 'webcam-loading';
+    loading.innerHTML = `
+        <div class="spinner"></div>
+        <div>Chargement...</div>
+    `;
+    content.appendChild(loading);
+
+    // Create stream element based on type
+    const streamElement = createStreamElement(webcam);
+    if (streamElement) {
+        // Hide loading when stream loads
+        streamElement.addEventListener('load', () => {
+            loading.style.display = 'none';
+        });
+        streamElement.addEventListener('error', () => {
+            loading.style.display = 'none';
+            showStreamError(content, webcam);
+        });
+        
+        // For video elements, use different events
+        if (streamElement.tagName === 'VIDEO') {
+            streamElement.addEventListener('loadeddata', () => {
+                loading.style.display = 'none';
+            });
+            streamElement.addEventListener('error', () => {
+                loading.style.display = 'none';
+                showStreamError(content, webcam);
+            });
+        }
+
+        content.appendChild(streamElement);
+    } else {
+        loading.style.display = 'none';
+        showStreamError(content, webcam);
+    }
+
+    // Assemble card
+    card.appendChild(header);
+    card.appendChild(content);
+
+    return card;
+}
+
+/**
+ * Creates the appropriate stream element based on webcam type
+ * @param {Object} webcam - Webcam data object
+ * @returns {HTMLElement|null} - The stream element or null if invalid
+ */
+function createStreamElement(webcam) {
+    if (!webcam.streamUrl || !webcam.streamType) {
+        console.warn(`Invalid webcam data for ${webcam.name}: missing streamUrl or streamType`);
+        return null;
+    }
+
+    switch (webcam.streamType.toLowerCase()) {
+        case 'iframe':
+            return createIframeStream(webcam.streamUrl);
+        
+        case 'video':
+            return createVideoStream(webcam.streamUrl);
+        
+        case 'youtube':
+            return createYouTubeStream(webcam.streamUrl);
+        
+        default:
+            console.warn(`Unknown stream type: ${webcam.streamType} for ${webcam.name}`);
+            return createIframeStream(webcam.streamUrl); // Default to iframe
+    }
+}
+
+/**
+ * Creates an iframe element for streaming
+ * @param {string} url - Stream URL
+ * @returns {HTMLIFrameElement} - The iframe element
+ */
+function createIframeStream(url) {
+    const iframe = document.createElement('iframe');
+    iframe.className = 'webcam-iframe';
+    iframe.src = url;
+    iframe.allowFullscreen = true;
+    iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media');
+    iframe.setAttribute('loading', 'lazy');
+    return iframe;
+}
+
+/**
+ * Creates a video element for direct video streaming
+ * @param {string} url - Video stream URL
+ * @returns {HTMLVideoElement} - The video element
+ */
+function createVideoStream(url) {
+    const video = document.createElement('video');
+    video.className = 'webcam-video';
+    video.src = url;
+    video.controls = true;
+    video.autoplay = true;
+    video.muted = true; // Required for autoplay in most browsers
+    video.playsInline = true;
+    video.setAttribute('playsinline', 'true');
+    return video;
+}
+
+/**
+ * Creates a YouTube embed iframe
+ * @param {string} url - YouTube URL or video ID
+ * @returns {HTMLIFrameElement} - The YouTube iframe
+ */
+function createYouTubeStream(url) {
+    // Extract video ID from various YouTube URL formats
+    let videoId = url;
+    
+    // Handle full YouTube URLs
+    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(youtubeRegex);
+    if (match) {
+        videoId = match[1];
+    }
+    
+    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1`;
+    return createIframeStream(embedUrl);
+}
+
+/**
+ * Shows an error message when stream fails to load
+ * @param {HTMLElement} container - The container element
+ * @param {Object} webcam - Webcam data object
+ */
+function showStreamError(container, webcam) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'webcam-error';
+    errorDiv.innerHTML = `
+        <div class="webcam-error-icon">⚠️</div>
+        <div class="webcam-error-message">
+            Impossible de charger le flux<br>
+            <small>${escapeHtml(webcam.name)}</small>
+        </div>
+    `;
+    
+    // Remove existing error if any
+    const existingError = container.querySelector('.webcam-error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    container.appendChild(errorDiv);
+}
+
+/**
+ * Escapes HTML to prevent XSS attacks
+ * @param {string} text - Text to escape
+ * @returns {string} - Escaped text
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
+ * Refreshes a specific webcam stream
+ * @param {number} webcamId - ID of the webcam to refresh
+ */
+function refreshWebcam(webcamId) {
+    const card = document.querySelector(`[data-webcam-id="${webcamId}"]`);
+    if (!card) {
+        console.warn(`Webcam with ID ${webcamId} not found`);
+        return;
+    }
+
+    const content = card.querySelector('.webcam-content');
+    const webcam = webcams.find(w => w.id === webcamId);
+    
+    if (!webcam) {
+        console.warn(`Webcam data not found for ID ${webcamId}`);
+        return;
+    }
+
+    // Clear content
+    content.innerHTML = '';
+    
+    // Show loading
+    const loading = document.createElement('div');
+    loading.className = 'webcam-loading';
+    loading.innerHTML = `
+        <div class="spinner"></div>
+        <div>Rechargement...</div>
+    `;
+    content.appendChild(loading);
+
+    // Recreate stream
+    const streamElement = createStreamElement(webcam);
+    if (streamElement) {
+        streamElement.addEventListener('load', () => {
+            loading.style.display = 'none';
+        });
+        streamElement.addEventListener('error', () => {
+            loading.style.display = 'none';
+            showStreamError(content, webcam);
+        });
+        
+        if (streamElement.tagName === 'VIDEO') {
+            streamElement.addEventListener('loadeddata', () => {
+                loading.style.display = 'none';
+            });
+            streamElement.addEventListener('error', () => {
+                loading.style.display = 'none';
+                showStreamError(content, webcam);
+            });
+        }
+
+        content.appendChild(streamElement);
+    } else {
+        loading.style.display = 'none';
+        showStreamError(content, webcam);
+    }
+}
+
+/**
+ * Refreshes all webcam streams
+ */
+function refreshAllWebcams() {
+    webcams.forEach(webcam => {
+        refreshWebcam(webcam.id);
+    });
+}
+
+// Export functions for potential external use
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        renderWebcamGrid,
+        refreshWebcam,
+        refreshAllWebcams
+    };
+}
+

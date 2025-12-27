@@ -1,0 +1,399 @@
+# 🌊 Surf Webcams Biarritz
+
+Un site web simple et élégant pour afficher toutes les webcams de surf près de Biarritz en temps réel.
+
+## 📋 Table des matières
+
+- [Présentation](#présentation)
+- [Fonctionnalités](#fonctionnalités)
+- [Installation locale](#installation-locale)
+- [Comment trouver les URLs de webcams](#comment-trouver-les-urls-de-webcams)
+- [Ajouter des webcams](#ajouter-des-webcams)
+- [Déploiement sur GitHub Pages](#déploiement-sur-github-pages)
+- [Structure du projet](#structure-du-projet)
+- [Considérations légales](#considérations-légales)
+- [Dépannage](#dépannage)
+
+## 🎯 Présentation
+
+Ce projet est un agrégateur de webcams de surf qui affiche plusieurs flux vidéo en direct dans une grille responsive. Le site est construit avec du HTML, CSS et JavaScript pur (sans framework), ce qui le rend facile à comprendre et à modifier.
+
+## ✨ Fonctionnalités
+
+- **Design responsive** : Fonctionne parfaitement sur mobile, tablette et desktop
+- **Grille adaptative** : S'adapte automatiquement à la taille de l'écran
+- **Gestion d'erreurs** : Affiche des messages d'erreur si un flux ne charge pas
+- **Support multiple types de streams** : iframe, vidéo directe, YouTube
+- **Interface moderne** : Design épuré et professionnel
+- **Facile à maintenir** : Ajoutez de nouvelles webcams en quelques lignes de code
+
+## 🚀 Installation locale
+
+### Prérequis
+
+- Un navigateur web moderne (Chrome, Firefox, Safari, Edge)
+- Un éditeur de texte (VS Code, Sublime Text, etc.)
+- Git (pour le déploiement)
+
+### Étapes
+
+1. **Cloner ou télécharger le projet**
+   ```bash
+   git clone <votre-repo-url>
+   cd surfcams
+   ```
+
+2. **Ouvrir le projet**
+   - Ouvrez simplement `index.html` dans votre navigateur
+   - Ou utilisez un serveur local :
+     ```bash
+     # Avec Python 3
+     python -m http.server 8000
+     
+     # Avec Node.js (si vous avez http-server installé)
+     npx http-server
+     
+     # Avec PHP
+     php -S localhost:8000
+     ```
+   - Puis ouvrez `http://localhost:8000` dans votre navigateur
+
+3. **Modifier le code**
+   - Ouvrez les fichiers dans votre éditeur préféré
+   - Les modifications sont visibles après un rafraîchissement de la page
+
+## 🔍 Comment trouver les URLs de webcams
+
+### Méthode 1 : Inspection du code source (iframe)
+
+1. **Ouvrir la page webcam dans votre navigateur**
+   - Par exemple : https://www.anglet-tourisme.com/webcams/
+
+2. **Ouvrir les outils de développement**
+   - Appuyez sur `F12` ou `Cmd+Option+I` (Mac) / `Ctrl+Shift+I` (Windows)
+   - Ou clic droit → "Inspecter"
+
+3. **Trouver l'iframe**
+   - Cliquez sur l'icône de sélection (en haut à gauche des DevTools)
+   - Cliquez sur la vidéo webcam sur la page
+   - Dans l'onglet "Elements", cherchez une balise `<iframe>`
+   - Copiez l'URL dans l'attribut `src`
+
+   Exemple :
+   ```html
+   <iframe src="https://example.com/webcam/stream"></iframe>
+   ```
+
+### Méthode 2 : Onglet Network (pour les flux vidéo directs)
+
+1. **Ouvrir les DevTools** (`F12`)
+
+2. **Aller dans l'onglet "Network"**
+
+3. **Filtrer les requêtes**
+   - Tapez "media" ou "video" dans le filtre
+   - Ou cherchez des fichiers `.m3u8`, `.mp4`, `.flv`
+
+4. **Recharger la page** (`F5`)
+
+5. **Identifier le flux**
+   - Regardez les requêtes qui apparaissent
+   - Les flux vidéo ont souvent des noms comme "stream.m3u8" ou "live.mp4"
+   - Cliquez sur la requête pour voir l'URL complète
+
+### Méthode 3 : YouTube Live
+
+Si la webcam est diffusée sur YouTube :
+
+1. **Trouver l'URL YouTube**
+   - Peut être dans le code source de la page
+   - Ou directement sur la chaîne YouTube
+
+2. **Formats d'URL supportés** :
+   - `https://www.youtube.com/watch?v=VIDEO_ID`
+   - `https://youtu.be/VIDEO_ID`
+   - `VIDEO_ID` (juste l'ID)
+
+### Méthode 4 : Vérifier les embed codes
+
+Certains sites fournissent des codes d'intégration :
+
+1. **Chercher un bouton "Partager" ou "Intégrer"**
+2. **Copier le code iframe fourni**
+3. **Extraire l'URL du src**
+
+### Exemples de sources de webcams près de Biarritz
+
+- **Anglet Tourisme** : https://www.anglet-tourisme.com/webcams/
+- **Quiksilver** : https://quiksilver.lu/surf/webcams/
+- **Ecole.Surf** : https://ecole.surf/webcams-biarritz/
+
+## ➕ Ajouter des webcams
+
+### Étape 1 : Ouvrir `script.js`
+
+Ouvrez le fichier `script.js` dans votre éditeur.
+
+### Étape 2 : Ajouter une webcam au tableau
+
+Trouvez le tableau `webcams` et ajoutez un nouvel objet :
+
+```javascript
+const webcams = [
+    {
+        id: 1,
+        name: "Anglet - La Madrague",
+        location: "Anglet",
+        streamUrl: "https://example.com/webcam/stream",
+        streamType: "iframe", // "iframe", "video", ou "youtube"
+        thumbnail: "" // optionnel
+    },
+    {
+        id: 2,
+        name: "Biarritz - La Grande Plage",
+        location: "Biarritz",
+        streamUrl: "https://www.youtube.com/watch?v=VIDEO_ID",
+        streamType: "youtube"
+    },
+    // Ajoutez plus de webcams ici...
+];
+```
+
+### Paramètres de webcam
+
+- **id** (obligatoire) : Un numéro unique pour chaque webcam
+- **name** (obligatoire) : Le nom de la webcam (affiché en titre)
+- **location** (obligatoire) : L'emplacement (affiché sous le titre)
+- **streamUrl** (obligatoire) : L'URL du flux vidéo
+- **streamType** (obligatoire) : Type de stream
+  - `"iframe"` : Pour les iframes standard
+  - `"video"` : Pour les URLs vidéo directes (.mp4, .m3u8, etc.)
+  - `"youtube"` : Pour les streams YouTube (Live ou vidéos)
+- **thumbnail** (optionnel) : URL d'une image miniature (non utilisé actuellement)
+
+### Exemples concrets
+
+#### Exemple 1 : iframe standard
+```javascript
+{
+    id: 1,
+    name: "Anglet - La Madrague",
+    location: "Anglet",
+    streamUrl: "https://webcam.example.com/embed/12345",
+    streamType: "iframe"
+}
+```
+
+#### Exemple 2 : Flux vidéo direct
+```javascript
+{
+    id: 2,
+    name: "Biarritz - Côte des Basques",
+    location: "Biarritz",
+    streamUrl: "https://stream.example.com/live/stream.m3u8",
+    streamType: "video"
+}
+```
+
+#### Exemple 3 : YouTube Live
+```javascript
+{
+    id: 3,
+    name: "Hendaye - Plage",
+    location: "Hendaye",
+    streamUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    streamType: "youtube"
+}
+```
+
+### Étape 3 : Sauvegarder et tester
+
+1. Sauvegardez le fichier `script.js`
+2. Rafraîchissez votre navigateur (`F5`)
+3. La nouvelle webcam devrait apparaître dans la grille
+
+## 📤 Déploiement sur GitHub Pages
+
+### Étape 1 : Créer un dépôt GitHub
+
+1. Allez sur [GitHub.com](https://github.com)
+2. Cliquez sur "New repository"
+3. Nommez-le (ex: `surf-webcams-biarritz`)
+4. Choisissez "Public" (requis pour GitHub Pages gratuit)
+5. **Ne cochez PAS** "Initialize with README" (vous avez déjà un README)
+6. Cliquez sur "Create repository"
+
+### Étape 2 : Initialiser Git localement
+
+Ouvrez un terminal dans le dossier du projet :
+
+```bash
+# Initialiser Git
+git init
+
+# Ajouter tous les fichiers
+git add .
+
+# Faire le premier commit
+git commit -m "Initial commit: Surf webcams aggregator"
+```
+
+### Étape 3 : Connecter au dépôt GitHub
+
+```bash
+# Remplacer USERNAME et REPO_NAME par vos valeurs
+git remote add origin https://github.com/USERNAME/REPO_NAME.git
+
+# Renommer la branche principale en "main" (si nécessaire)
+git branch -M main
+
+# Pousser le code
+git push -u origin main
+```
+
+### Étape 4 : Activer GitHub Pages
+
+1. Allez sur votre dépôt GitHub
+2. Cliquez sur "Settings" (en haut à droite)
+3. Dans le menu de gauche, cliquez sur "Pages"
+4. Sous "Source", sélectionnez "Deploy from a branch"
+5. Choisissez la branche `main` et le dossier `/ (root)`
+6. Cliquez sur "Save"
+
+### Étape 5 : Accéder à votre site
+
+Votre site sera disponible à :
+```
+https://USERNAME.github.io/REPO_NAME/
+```
+
+**Note** : Il peut falloir quelques minutes pour que le site soit accessible.
+
+### Mettre à jour le site
+
+Chaque fois que vous modifiez le code :
+
+```bash
+git add .
+git commit -m "Description de vos modifications"
+git push
+```
+
+Les modifications seront visibles sur GitHub Pages en quelques minutes.
+
+## 📁 Structure du projet
+
+```
+surfcams/
+├── index.html          # Structure HTML principale
+├── styles.css          # Tous les styles CSS
+├── script.js           # Logique JavaScript et données des webcams
+├── README.md           # Ce fichier
+└── .gitignore          # Fichiers à ignorer par Git
+```
+
+## ⚖️ Considérations légales
+
+### Important : Vérifiez les droits d'utilisation
+
+Avant d'intégrer des webcams sur votre site :
+
+1. **Lisez les conditions d'utilisation** du site source
+2. **Vérifiez le fichier robots.txt** : `https://example.com/robots.txt`
+3. **Contactez les propriétaires** si vous n'êtes pas sûr
+4. **Respectez les droits d'auteur** et les marques déposées
+
+### Bonnes pratiques
+
+- **Attribution** : Mentionnez la source des webcams
+- **Disclaimer** : Le footer contient déjà un avertissement
+- **Respect** : Ne modifiez pas les flux ou ne les redistribuez pas
+- **Contact** : En cas de problème, contactez le propriétaire de la webcam
+
+### Si vous recevez une demande de retrait
+
+Si un propriétaire demande de retirer une webcam :
+
+1. Ouvrez `script.js`
+2. Supprimez l'entrée de la webcam du tableau `webcams`
+3. Commitez et poussez les modifications
+
+## 🔧 Dépannage
+
+### Une webcam ne s'affiche pas
+
+1. **Vérifiez la console du navigateur** (`F12` → onglet "Console")
+   - Cherchez les erreurs en rouge
+   - Les erreurs CORS sont communes avec les iframes
+
+2. **Vérifiez l'URL**
+   - Testez l'URL directement dans votre navigateur
+   - Assurez-vous qu'elle fonctionne
+
+3. **Vérifiez le type de stream**
+   - `iframe` : Pour les embeds standard
+   - `video` : Pour les URLs vidéo directes
+   - `youtube` : Pour YouTube
+
+4. **Problèmes CORS**
+   - Certains sites bloquent l'intégration dans d'autres sites
+   - Vous devrez peut-être contacter le propriétaire
+
+### Le site ne se charge pas sur GitHub Pages
+
+1. **Vérifiez que tous les fichiers sont poussés**
+   ```bash
+   git status
+   ```
+
+2. **Vérifiez les paramètres GitHub Pages**
+   - Settings → Pages → Source doit être configuré
+
+3. **Attendez quelques minutes**
+   - GitHub Pages peut prendre jusqu'à 10 minutes pour se mettre à jour
+
+4. **Vérifiez l'URL**
+   - Assurez-vous d'utiliser la bonne URL : `https://USERNAME.github.io/REPO_NAME/`
+
+### Les webcams ne se chargent pas sur mobile
+
+1. **Vérifiez la connexion internet**
+2. **Certains flux peuvent être lourds** - attendez le chargement
+3. **Vérifiez que les URLs fonctionnent sur mobile**
+
+### Comment rafraîchir une webcam manuellement
+
+Ouvrez la console du navigateur (`F12`) et tapez :
+
+```javascript
+refreshWebcam(1); // Remplacez 1 par l'ID de la webcam
+```
+
+Ou rafraîchir toutes les webcams :
+
+```javascript
+refreshAllWebcams();
+```
+
+## 📝 Notes supplémentaires
+
+- **Performance** : Avoir trop de webcams peut ralentir la page. Limitez à 6-8 webcams pour une meilleure expérience.
+- **Mises à jour** : Les URLs de webcams peuvent changer. Vérifiez régulièrement que tout fonctionne.
+- **Améliorations futures** : Vous pouvez ajouter des filtres par localisation, des miniatures, ou un système de favoris.
+
+## 🤝 Contribution
+
+N'hésitez pas à améliorer ce projet ! Vous pouvez :
+- Ajouter de nouvelles fonctionnalités
+- Améliorer le design
+- Corriger des bugs
+- Ajouter plus de webcams
+
+## 📄 Licence
+
+Ce projet est fourni tel quel, sans garantie. Utilisez-le à vos propres risques.
+
+---
+
+**Bon surf ! 🏄‍♂️**
+
