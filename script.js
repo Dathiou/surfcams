@@ -127,7 +127,10 @@ const webcams = [
 //   - Netlify: 'https://your-site.netlify.app/.netlify/functions/proxy'
 //   - Vercel: 'https://your-site.vercel.app/api/proxy'
 const PROXY_ENABLED = true; // Set to true to enable proxy
-const PROXY_BASE_URL = 'https://magnificent-beignet-e92358.netlify.app/.netlify/functions/proxy'; // Your proxy endpoint URL (without trailing slash)
+// Auto-detect environment: use local proxy for localhost, Netlify proxy for production
+const PROXY_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000/api/proxy'
+    : 'https://magnificent-beignet-e92358.netlify.app/.netlify/functions/proxy'; // Your proxy endpoint URL (without trailing slash)
 
 // Initialize the webcam grid when page loads
 document.addEventListener('DOMContentLoaded', function() {
