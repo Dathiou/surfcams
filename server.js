@@ -34,6 +34,14 @@ app.use(cors());
 // Serve static files (your HTML, CSS, JS)
 app.use(express.static(path.join(__dirname)));
 
+// Handle CORS preflight requests
+app.options('/api/proxy', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Referer, Origin');
+    res.status(200).end();
+});
+
 // Proxy endpoint for joada.net URLs
 app.get('/api/proxy', async (req, res) => {
     const targetUrl = req.query.url;
