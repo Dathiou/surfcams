@@ -213,6 +213,65 @@ const webcams = [
 2. Rafraîchissez votre navigateur (`F5`)
 3. La nouvelle webcam devrait apparaître dans la grille
 
+## 🔄 Maintenir les URLs à jour
+
+Certaines webcams utilisent des URLs avec des timestamps qui peuvent expirer. Voici comment s'assurer que votre site utilise toujours les dernières URLs :
+
+### Mise à jour automatique des timestamps
+
+Le script `script.js` inclut une fonction qui met automatiquement à jour les timestamps dans les URLs au chargement de la page. Cela fonctionne pour les URLs qui contiennent un paramètre `tsp=` (timestamp).
+
+**Cela signifie que :** Les timestamps sont automatiquement mis à jour à chaque chargement de la page, donc vous n'avez généralement pas besoin de vous en préoccuper !
+
+### Si une webcam ne fonctionne plus
+
+Si une webcam ne s'affiche plus (même après rafraîchissement), cela peut signifier que l'UUID a changé. Voici comment trouver la nouvelle URL :
+
+#### Méthode 1 : Utiliser le script helper (Recommandé)
+
+Un script helper est disponible pour extraire les dernières URLs :
+
+```bash
+node update-webcams.js
+```
+
+Ce script va :
+- Vérifier les pages sources des webcams
+- Extraire les dernières URLs d'embed
+- Vous donner les nouvelles URLs à copier dans `script.js`
+
+#### Méthode 2 : Mise à jour manuelle
+
+1. **Ouvrez la page source de la webcam** (ex: gosurf.fr, quiksilver.fr)
+2. **Ouvrez les outils de développement** (`F12`)
+3. **Cherchez dans le code source** :
+   - Pour les URLs joada.net : Cherchez `platforms5.joada.net`
+   - Pour les UUIDs : Cherchez `uuid=` dans le JavaScript
+4. **Copiez la nouvelle URL** et mettez à jour `script.js`
+
+#### Exemple : Mettre à jour Hossegor
+
+1. Allez sur `https://gosurf.fr/webcam/fr/21/Hossegor-La-Centrale`
+2. Ouvrez les DevTools (`F12`) → onglet "Sources" ou "Elements"
+3. Cherchez `joada.net` ou `uuid=`
+4. Copiez la nouvelle URL complète
+5. Remplacez l'ancienne URL dans `script.js` pour "Hossegor - La Centrale"
+
+### URLs qui ne changent généralement pas
+
+Les webcams suivantes utilisent des URLs stables qui ne changent pas :
+- **Toutes les webcams Anglet** (pv.viewsurf.com) - URLs stables
+- **Biarritz Grande Plage** (pv.viewsurf.com) - URL stable
+
+### URLs qui peuvent changer
+
+Ces webcams peuvent nécessiter des mises à jour périodiques :
+- **Hossegor - La Centrale** (joada.net avec timestamp)
+- **Seignosse webcams** (joada.net avec timestamp)
+- **Biarritz - Côte des Basques** (UUID peut changer)
+
+**Fréquence recommandée :** Vérifiez une fois par mois ou si une webcam ne fonctionne plus.
+
 ## 🌐 Options d'hébergement gratuites
 
 Toutes ces options sont **100% gratuites** pour les sites statiques comme celui-ci :
@@ -407,6 +466,7 @@ surfcams/
 ├── index.html          # Structure HTML principale
 ├── styles.css          # Tous les styles CSS
 ├── script.js           # Logique JavaScript et données des webcams
+├── update-webcams.js   # Script helper pour mettre à jour les URLs (optionnel)
 ├── README.md           # Ce fichier
 └── .gitignore          # Fichiers à ignorer par Git
 ```

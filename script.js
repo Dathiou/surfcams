@@ -54,7 +54,7 @@ const webcams = [
         id: 8,
         name: "Hossegor - La Centrale",
         location: "Hossegor",
-        streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=8220d0f6-0fd5-4bff-3636-3230-6d61-63-a866-a1fb6cab20f3d&type=vod&liveicon=0&vsheader=1&tz=Europe/Paris&tsp=1766860204&titletext=",
+        streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=ed952023-5809-4800-3636-3230-6d61-63-8434-ef51ef1b3c2dd&type=vod&liveicon=0&vsheader=1&tz=Europe/Paris&tsp=1766928003&titletext=",
         streamType: "iframe"
     },
     {
@@ -105,15 +105,37 @@ const webcams = [
         location: "Saint Jean de Luz",
         streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=5c6c4cdb-a774-4da4-3533-3430-6d61-63-b749-ba239a7f9e53d&type=vod&liveicon=0&vsheader=1&tz=Europe/Paris&tsp=1766926809&titletext=",
         streamType: "iframe"
+    },
+    {
+        id: 16,
+        name: "Biarritz - Côte des Basques",
+        location: "Biarritz",
+        streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=4ec957fc-fea2-49f2-3530-3130-6d61-63-872c-0869d3d9cef1d&type=live&liveicon=1&vsheader=1&tz=Europe/Paris&tsp=1766387031&titletext=",
+        streamType: "iframe"
     }
-    // Note: Biarritz - Côte des Basques doesn't have a working embed-only URL available
-    // The webcam-hd.fr URL redirects and doesn't work for embedding
 ];
 
 // Initialize the webcam grid when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    // Update timestamps in URLs that have them (to ensure they're current)
+    updateUrlTimestamps();
     renderWebcamGrid();
 });
+
+/**
+ * Updates timestamps in webcam URLs to ensure they're current
+ * This helps prevent expired embed URLs
+ */
+function updateUrlTimestamps() {
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    
+    webcams.forEach(webcam => {
+        if (webcam.streamUrl && webcam.streamUrl.includes('tsp=')) {
+            // Update the timestamp parameter in the URL
+            webcam.streamUrl = webcam.streamUrl.replace(/tsp=\d+/, `tsp=${currentTimestamp}`);
+        }
+    });
+}
 
 /**
  * Renders all webcams in the grid
