@@ -134,11 +134,12 @@ exports.handler = async (event, context) => {
                     if (url && (url.includes('joada.net') || url.includes('platforms6.joada.net'))) {
                         // Don't proxy if already proxied
                         if (!url.includes('/.netlify/functions/proxy') && !url.includes('/api/proxy')) {
-                            url = getProxyUrl(url);
+                            const proxiedUrl = getProxyUrl(url);
+                            console.log('[Proxy] Intercepting fetch:', url, '->', proxiedUrl);
                             if (typeof args[0] === 'string') {
-                                args[0] = url;
+                                args[0] = proxiedUrl;
                             } else {
-                                args[0] = { ...args[0], url: url };
+                                args[0] = { ...args[0], url: proxiedUrl };
                             }
                             // Remove headers that might cause issues
                             if (args[1] && args[1].headers) {
@@ -160,7 +161,9 @@ exports.handler = async (event, context) => {
                     if (url && (url.includes('joada.net') || url.includes('platforms6.joada.net'))) {
                         // Don't proxy if already proxied
                         if (!url.includes('/.netlify/functions/proxy') && !url.includes('/api/proxy')) {
-                            url = getProxyUrl(url);
+                            const proxiedUrl = getProxyUrl(url);
+                            console.log('[Proxy] Intercepting XHR:', url, '->', proxiedUrl);
+                            url = proxiedUrl;
                             this._url = url;
                         } else {
                             this._url = url;
