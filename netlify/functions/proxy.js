@@ -119,8 +119,12 @@ exports.handler = async (event, context) => {
                 window.fetch = function(...args) {
                     const url = typeof args[0] === 'string' ? args[0] : args[0].url;
                     if (url && (url.includes('joada.net') || url.includes('platforms6.joada.net'))) {
-                        // Proxy API requests through our Netlify function
-                        const proxyUrl = window.location.origin + '/.netlify/functions/proxy?url=' + encodeURIComponent(url);
+                        // Detect proxy URL - use current page's origin
+                        const currentOrigin = window.location.origin;
+                        const proxyPath = currentOrigin.includes('netlify.app') 
+                            ? '/.netlify/functions/proxy'
+                            : (currentOrigin.includes('localhost') ? '/api/proxy' : '/.netlify/functions/proxy');
+                        const proxyUrl = currentOrigin + proxyPath + '?url=' + encodeURIComponent(url);
                         args[0] = proxyUrl;
                         // Remove headers that might cause issues
                         if (args[1] && args[1].headers) {
@@ -151,8 +155,12 @@ exports.handler = async (event, context) => {
                 const originalSend = XMLHttpRequest.prototype.send;
                 XMLHttpRequest.prototype.send = function(...args) {
                     if (this._url && (this._url.includes('joada.net') || this._url.includes('platforms6.joada.net'))) {
-                        // Proxy API requests through our Netlify function
-                        const proxyUrl = window.location.origin + '/.netlify/functions/proxy?url=' + encodeURIComponent(this._url);
+                        // Detect proxy URL - use current page's origin
+                        const currentOrigin = window.location.origin;
+                        const proxyPath = currentOrigin.includes('netlify.app') 
+                            ? '/.netlify/functions/proxy'
+                            : (currentOrigin.includes('localhost') ? '/api/proxy' : '/.netlify/functions/proxy');
+                        const proxyUrl = currentOrigin + proxyPath + '?url=' + encodeURIComponent(this._url);
                         // Re-open with proxied URL
                         const method = this._method || 'GET';
                         originalOpen.call(this, method, proxyUrl, true);
