@@ -104,10 +104,13 @@ exports.handler = async (event, context) => {
             .replace(/action="\//g, 'action="https://platforms5.joada.net/');
         
         // Inject JavaScript to bypass referrer checks and intercept fetch/XMLHttpRequest
+        // Inject BEFORE </head> to ensure it runs before other scripts
         if (html.includes('</head>')) {
             const referrerBypass = `
             <script>
+            // Run immediately, before any other scripts
             (function() {
+                'use strict';
                 // Override document.referrer
                 Object.defineProperty(document, 'referrer', {
                     get: function() { return 'https://viewsurf.com/'; },
@@ -135,37 +138,32 @@ exports.handler = async (event, context) => {
                     return originalFetch.apply(this, args);
                 };
                 
-                // Intercept XMLHttpRequest
+                // Intercept XMLHttpRequest - must be done before any XHR is created
                 const originalOpen = XMLHttpRequest.prototype.open;
                 const originalSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
                 XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+                    this._method = method;
                     this._url = url;
-                    return originalOpen.apply(this, [method, url, ...rest]);
-                };
-                XMLHttpRequest.prototype.setRequestHeader = function(header, value) {
-                    if (this._url && (this._url.includes('joada.net') || this._url.includes('platforms6.joada.net'))) {
-                        if (header.toLowerCase() === 'referer' || header.toLowerCase() === 'origin') {
-                            return; // Don't override if already set
-                        }
-                    }
-                    return originalSetRequestHeader.apply(this, arguments);
-                };
-                
-                // Intercept XMLHttpRequest to proxy API requests
-                const originalSend = XMLHttpRequest.prototype.send;
-                XMLHttpRequest.prototype.send = function(...args) {
-                    if (this._url && (this._url.includes('joada.net') || this._url.includes('platforms6.joada.net'))) {
-                        // Detect proxy URL - use current page's origin
+                    // If this is a joada.net API request, proxy it immediately
+                    if (url && (url.includes('joada.net') || url.includes('platforms6.joada.net'))) {
                         const currentOrigin = window.location.origin;
                         const proxyPath = currentOrigin.includes('netlify.app') 
                             ? '/.netlify/functions/proxy'
                             : (currentOrigin.includes('localhost') ? '/api/proxy' : '/.netlify/functions/proxy');
-                        const proxyUrl = currentOrigin + proxyPath + '?url=' + encodeURIComponent(this._url);
-                        // Re-open with proxied URL
-                        const method = this._method || 'GET';
-                        originalOpen.call(this, method, proxyUrl, true);
+                        url = currentOrigin + proxyPath + '?url=' + encodeURIComponent(url);
+                        this._url = url;
                     }
-                    return originalSend.apply(this, args);
+                    return originalOpen.apply(this, [method, url, ...rest]);
+                };
+                
+                XMLHttpRequest.prototype.setRequestHeader = function(header, value) {
+                    // Don't set Referer/Origin for proxied requests
+                    if (this._url && this._url.includes('/.netlify/functions/proxy') || this._url.includes('/api/proxy')) {
+                        if (header.toLowerCase() === 'referer' || header.toLowerCase() === 'origin') {
+                            return;
+                        }
+                    }
+                    return originalSetRequestHeader.apply(this, arguments);
                 };
             })();
             </script>
