@@ -278,12 +278,17 @@ Toutes ces options sont **100% gratuites** pour les sites statiques comme celui-
 
 ### Option 1 : Netlify (⭐ Recommandé - Le plus simple)
 
-**Avantages :**
-- Déploiement en 2 clics depuis GitHub
-- HTTPS automatique
-- CDN global rapide
-- Domaine personnalisé gratuit (ex: `surfcams.netlify.app`)
-- Mises à jour automatiques à chaque push
+**Plan gratuit inclut :**
+- ✅ 100 Go de bande passante par mois
+- ✅ 300 minutes de build par mois
+- ✅ Fonctions serverless (pour le proxy)
+- ✅ Déploiements illimités
+- ✅ HTTPS automatique
+- ✅ CDN global rapide
+- ✅ Domaine personnalisé gratuit (ex: `surfcams.netlify.app`)
+- ✅ Mises à jour automatiques à chaque push
+
+**Parfait pour :** Sites personnels, projets open source, MVPs
 
 **Étapes :**
 
@@ -387,6 +392,15 @@ Votre site sera disponible sur `surfcams-xxxxx.vercel.app`
 | **GitHub Pages** | ⭐⭐ Moyen | ✅ Oui | ✅ Oui |
 
 **Notre recommandation :** Netlify est le plus simple et le plus adapté pour ce projet.
+
+**Pourquoi Netlify ?**
+- ✅ Le plus simple à configurer (tout est automatique)
+- ✅ Détection automatique de la fonction proxy
+- ✅ Interface très intuitive
+- ✅ Parfait pour les débutants
+- ✅ Configuration minimale requise
+
+**Vercel est aussi excellent** mais nécessite un peu plus de configuration. Les deux sont 100% gratuits !
 
 ## 📤 Déploiement sur GitHub Pages
 
@@ -548,16 +562,15 @@ Si un propriétaire demande de retirer une webcam :
 
 **Solutions :**
 
-#### Solution 1 : Activer le proxy CORS (dans script.js)
+#### Solution 1 : Utiliser le proxy backend (⭐ Recommandé)
 
-Ouvrez `script.js` et changez `USE_CORS_PROXY` à `true` :
+Un proxy backend a été créé pour résoudre ce problème. Il existe en 3 versions selon votre méthode d'hébergement :
 
-```javascript
-// Ligne ~118 dans script.js
-const USE_CORS_PROXY = true; // Changez false en true
-```
+- **Serveur Express.js** - Pour développement local ou VPS
+- **Netlify Function** - Pour déploiement sur Netlify
+- **Vercel Function** - Pour déploiement sur Vercel
 
-**Note :** Les proxies CORS peuvent être lents et instables. Testez bien avant de déployer.
+**Voir la section [Proxy Backend](#proxy-backend) ci-dessous pour les instructions complètes.**
 
 #### Solution 2 : Chercher des alternatives pv.viewsurf.com
 
@@ -569,19 +582,6 @@ Contactez les propriétaires des webcams (viewsurf, gosurf) pour :
 - Demander la permission d'embed
 - Obtenir des URLs d'embed officielles
 - Demander à être ajouté à la liste blanche des domaines autorisés
-
-#### Solution 4 : Utiliser un serveur proxy (Solution avancée)
-
-Si vous avez accès à un serveur backend, créez un proxy qui :
-- Récupère les streams depuis joada.net
-- Les sert à votre site avec les bons headers
-- Contourne les restrictions de referrer
-
-Cela nécessite des connaissances en développement backend (Node.js, Python, etc.).
-
-#### Solution 5 : Héberger sur le même domaine (Non recommandé)
-
-Théoriquement, si vous hébergez votre site sur un sous-domaine autorisé, cela pourrait fonctionner, mais ce n'est généralement pas possible.
 
 ### Comment rafraîchir une webcam manuellement
 
@@ -610,6 +610,129 @@ N'hésitez pas à améliorer ce projet ! Vous pouvez :
 - Améliorer le design
 - Corriger des bugs
 - Ajouter plus de webcams
+
+## 🔄 Proxy Backend (Solution pour les erreurs 403)
+
+Un proxy backend a été créé pour contourner les erreurs 403 Forbidden des webcams joada.net. Il existe en 3 versions selon votre méthode d'hébergement.
+
+### Option 1 : Serveur Express.js (Développement local ou VPS)
+
+**Pour tester en local :**
+
+1. **Installez les dépendances :**
+   ```bash
+   npm install
+   ```
+
+2. **Démarrez le serveur :**
+   ```bash
+   npm start
+   ```
+
+3. **Accédez à votre site :**
+   ```
+   http://localhost:3000
+   ```
+
+4. **Activez le proxy dans `script.js` :**
+   ```javascript
+   const PROXY_ENABLED = true;
+   const PROXY_BASE_URL = 'http://localhost:3000/api/proxy';
+   ```
+
+**Pour héberger sur un VPS :**
+- Utilisez PM2 ou systemd pour faire tourner le serveur en arrière-plan
+- Configurez un reverse proxy (nginx) pour servir le site sur le port 80/443
+
+### Option 2 : Netlify Functions (Recommandé pour Netlify)
+
+**Étapes :**
+
+1. **Installez les dépendances :**
+   ```bash
+   npm install
+   ```
+
+2. **Activez le proxy dans `script.js` :**
+   ```javascript
+   const PROXY_ENABLED = true;
+   const PROXY_BASE_URL = 'https://votre-site.netlify.app/.netlify/functions/proxy';
+   ```
+   *(Remplacez `votre-site.netlify.app` par votre URL Netlify)*
+
+3. **Déployez sur Netlify :**
+   - Poussez votre code sur GitHub
+   - Connectez le dépôt à Netlify
+   - Netlify détectera automatiquement la fonction dans `netlify/functions/`
+
+4. **Testez :**
+   - Votre proxy sera accessible à : `https://votre-site.netlify.app/.netlify/functions/proxy?url=ENCODED_URL`
+   - Les webcams joada.net devraient maintenant fonctionner !
+
+**Note :** Netlify Functions nécessite un compte Netlify (gratuit). La fonction est automatiquement déployée avec votre site.
+
+### Option 3 : Vercel Functions (Recommandé pour Vercel)
+
+**Étapes :**
+
+1. **Installez les dépendances :**
+   ```bash
+   npm install
+   ```
+
+2. **Activez le proxy dans `script.js` :**
+   ```javascript
+   const PROXY_ENABLED = true;
+   const PROXY_BASE_URL = 'https://votre-site.vercel.app/api/proxy';
+   ```
+   *(Remplacez `votre-site.vercel.app` par votre URL Vercel)*
+
+3. **Déployez sur Vercel :**
+   ```bash
+   # Installez Vercel CLI
+   npm install -g vercel
+   
+   # Déployez
+   vercel
+   ```
+
+   Ou connectez votre dépôt GitHub à Vercel depuis le dashboard.
+
+4. **Testez :**
+   - Votre proxy sera accessible à : `https://votre-site.vercel.app/api/proxy?url=ENCODED_URL`
+   - Les webcams joada.net devraient maintenant fonctionner !
+
+**Note :** Vercel Functions est **100% gratuit** dans le plan Hobby. Le plan gratuit inclut :
+- 100 Go de bande passante par mois
+- Fonctions serverless illimitées
+- Plus que suffisant pour un site de webcams personnel
+
+### Comment ça marche ?
+
+Le proxy :
+1. Reçoit une requête avec l'URL de la webcam joada.net
+2. Fait une requête serveur vers joada.net avec un Referer autorisé (viewsurf.com)
+3. Récupère le contenu HTML
+4. Corrige les URLs relatives dans le HTML
+5. Renvoie le contenu à votre site
+
+Cela contourne la vérification du Referer car la requête vers joada.net vient du serveur, pas du navigateur.
+
+### Dépannage du proxy
+
+**Le proxy ne fonctionne pas :**
+1. Vérifiez que `PROXY_ENABLED` est à `true` dans `script.js`
+2. Vérifiez que `PROXY_BASE_URL` est correct (avec `https://` et sans slash final)
+3. Testez l'URL du proxy directement dans votre navigateur :
+   ```
+   https://votre-site.netlify.app/.netlify/functions/proxy?url=https%3A%2F%2Fplatforms5.joada.net%2Fembeded%2Fembeded.html%3Fuuid%3D...
+   ```
+4. Vérifiez la console du navigateur pour les erreurs CORS
+
+**Erreur 500 sur le proxy :**
+- Vérifiez les logs de votre plateforme (Netlify/Vercel dashboard)
+- Assurez-vous que les dépendances sont installées (`npm install`)
+- Vérifiez que l'URL joada.net est valide
 
 ## 📄 Licence
 

@@ -115,10 +115,14 @@ const webcams = [
     }
 ];
 
-// Configuration: Set to true to use CORS proxy for joada.net URLs (helps with 403 errors when hosted)
-// Note: CORS proxies can be slow and unreliable. Use only if necessary.
-const USE_CORS_PROXY = false;
-const CORS_PROXY_URL = 'https://corsproxy.io/?'; // Alternative: 'https://api.allorigins.win/raw?url='
+// Configuration: Proxy settings for joada.net URLs (bypasses 403 errors when hosted)
+// Set PROXY_ENABLED to true and PROXY_BASE_URL to your proxy endpoint
+// Examples:
+//   - Local development: 'http://localhost:3000/api/proxy'
+//   - Netlify: 'https://your-site.netlify.app/.netlify/functions/proxy'
+//   - Vercel: 'https://your-site.vercel.app/api/proxy'
+const PROXY_ENABLED = false; // Set to true to enable proxy
+const PROXY_BASE_URL = ''; // Your proxy endpoint URL (without trailing slash)
 
 // Initialize the webcam grid when page loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -143,13 +147,14 @@ function updateUrlTimestamps() {
 }
 
 /**
- * Wraps a URL with a CORS proxy if needed
+ * Wraps a URL with the backend proxy if enabled and needed
  * @param {string} url - Original URL
  * @returns {string} - URL with proxy if needed
  */
 function wrapUrlWithProxy(url) {
-    if (USE_CORS_PROXY && (url.includes('joada.net') || url.includes('platforms5.joada.net'))) {
-        return CORS_PROXY_URL + encodeURIComponent(url);
+    // Only proxy joada.net URLs if proxy is enabled
+    if (PROXY_ENABLED && PROXY_BASE_URL && (url.includes('joada.net') || url.includes('platforms5.joada.net'))) {
+        return `${PROXY_BASE_URL}?url=${encodeURIComponent(url)}`;
     }
     return url;
 }
