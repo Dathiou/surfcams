@@ -127,7 +127,8 @@ const PROXY_BASE_URL = 'https://magnificent-beignet-e92358.netlify.app/.netlify/
 // Initialize the webcam grid when page loads
 document.addEventListener('DOMContentLoaded', function() {
     // Update timestamps in URLs that have them (to ensure they're current)
-    updateUrlTimestamps();
+    // TEMPORARILY DISABLED - uncomment to re-enable
+    // updateUrlTimestamps();
     renderWebcamGrid();
 });
 
