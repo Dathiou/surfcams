@@ -108,9 +108,19 @@ exports.handler = async (event, context) => {
         if (html.includes('</head>')) {
             const referrerBypass = `
             <script>
-            // Run immediately, before any other scripts
+            // Run immediately, before any other scripts - CRITICAL: Must run first!
             (function() {
                 'use strict';
+                
+                // Get proxy URL helper
+                function getProxyUrl(targetUrl) {
+                    const currentOrigin = window.location.origin;
+                    const proxyPath = currentOrigin.includes('netlify.app') 
+                        ? '/.netlify/functions/proxy'
+                        : (currentOrigin.includes('localhost') ? '/api/proxy' : '/.netlify/functions/proxy');
+                    return currentOrigin + proxyPath + '?url=' + encodeURIComponent(targetUrl);
+                }
+                
                 // Override document.referrer
                 Object.defineProperty(document, 'referrer', {
                     get: function() { return 'https://viewsurf.com/'; },
@@ -120,19 +130,21 @@ exports.handler = async (event, context) => {
                 // Intercept fetch requests to proxy through our server
                 const originalFetch = window.fetch;
                 window.fetch = function(...args) {
-                    const url = typeof args[0] === 'string' ? args[0] : args[0].url;
+                    let url = typeof args[0] === 'string' ? args[0] : args[0].url;
                     if (url && (url.includes('joada.net') || url.includes('platforms6.joada.net'))) {
-                        // Detect proxy URL - use current page's origin
-                        const currentOrigin = window.location.origin;
-                        const proxyPath = currentOrigin.includes('netlify.app') 
-                            ? '/.netlify/functions/proxy'
-                            : (currentOrigin.includes('localhost') ? '/api/proxy' : '/.netlify/functions/proxy');
-                        const proxyUrl = currentOrigin + proxyPath + '?url=' + encodeURIComponent(url);
-                        args[0] = proxyUrl;
-                        // Remove headers that might cause issues
-                        if (args[1] && args[1].headers) {
-                            delete args[1].headers['Referer'];
-                            delete args[1].headers['Origin'];
+                        // Don't proxy if already proxied
+                        if (!url.includes('/.netlify/functions/proxy') && !url.includes('/api/proxy')) {
+                            url = getProxyUrl(url);
+                            if (typeof args[0] === 'string') {
+                                args[0] = url;
+                            } else {
+                                args[0] = { ...args[0], url: url };
+                            }
+                            // Remove headers that might cause issues
+                            if (args[1] && args[1].headers) {
+                                delete args[1].headers['Referer'];
+                                delete args[1].headers['Origin'];
+                            }
                         }
                     }
                     return originalFetch.apply(this, args);
@@ -143,14 +155,17 @@ exports.handler = async (event, context) => {
                 const originalSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
                 XMLHttpRequest.prototype.open = function(method, url, ...rest) {
                     this._method = method;
-                    this._url = url;
+                    this._originalUrl = url;
                     // If this is a joada.net API request, proxy it immediately
                     if (url && (url.includes('joada.net') || url.includes('platforms6.joada.net'))) {
-                        const currentOrigin = window.location.origin;
-                        const proxyPath = currentOrigin.includes('netlify.app') 
-                            ? '/.netlify/functions/proxy'
-                            : (currentOrigin.includes('localhost') ? '/api/proxy' : '/.netlify/functions/proxy');
-                        url = currentOrigin + proxyPath + '?url=' + encodeURIComponent(url);
+                        // Don't proxy if already proxied
+                        if (!url.includes('/.netlify/functions/proxy') && !url.includes('/api/proxy')) {
+                            url = getProxyUrl(url);
+                            this._url = url;
+                        } else {
+                            this._url = url;
+                        }
+                    } else {
                         this._url = url;
                     }
                     return originalOpen.apply(this, [method, url, ...rest]);
@@ -158,7 +173,7 @@ exports.handler = async (event, context) => {
                 
                 XMLHttpRequest.prototype.setRequestHeader = function(header, value) {
                     // Don't set Referer/Origin for proxied requests
-                    if (this._url && this._url.includes('/.netlify/functions/proxy') || this._url.includes('/api/proxy')) {
+                    if (this._url && (this._url.includes('/.netlify/functions/proxy') || this._url.includes('/api/proxy'))) {
                         if (header.toLowerCase() === 'referer' || header.toLowerCase() === 'origin') {
                             return;
                         }
