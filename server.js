@@ -67,10 +67,24 @@ app.get('/api/proxy', async (req, res) => {
         });
 
         if (!response.ok) {
-            return res.status(response.status).send(`Error: ${response.statusText}`);
+            return res.status(response.status).json({ error: response.statusText });
         }
 
-        // Get the HTML content
+        // Handle API requests (JSON responses)
+        if (isApiRequest) {
+            const contentType = response.headers.get('content-type') || '';
+            const data = contentType.includes('application/json') 
+                ? await response.json() 
+                : await response.text();
+            
+            res.setHeader('Content-Type', contentType || 'application/json');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Referer, Origin');
+            return res.send(typeof data === 'string' ? data : JSON.stringify(data));
+        }
+
+        // Get the HTML content (for embed pages)
         let html = await response.text();
         
         // Modify the HTML to fix relative URLs and iframe sources
@@ -90,15 +104,23 @@ app.get('/api/proxy', async (req, res) => {
                     configurable: true
                 });
                 
-                // Intercept fetch requests to add proper headers
+                // Intercept fetch requests to proxy through our server
                 const originalFetch = window.fetch;
                 window.fetch = function(...args) {
                     const url = typeof args[0] === 'string' ? args[0] : args[0].url;
                     if (url && (url.includes('joada.net') || url.includes('platforms6.joada.net'))) {
-                        if (!args[1]) args[1] = {};
-                        if (!args[1].headers) args[1].headers = {};
-                        args[1].headers['Referer'] = 'https://viewsurf.com/';
-                        args[1].headers['Origin'] = 'https://viewsurf.com';
+                        // Detect proxy URL - use current page's origin
+                        const currentOrigin = window.location.origin;
+                        const proxyPath = currentOrigin.includes('netlify.app') 
+                            ? '/.netlify/functions/proxy'
+                            : (currentOrigin.includes('localhost') ? '/api/proxy' : '/.netlify/functions/proxy');
+                        const proxyUrl = currentOrigin + proxyPath + '?url=' + encodeURIComponent(url);
+                        args[0] = proxyUrl;
+                        // Remove headers that might cause issues
+                        if (args[1] && args[1].headers) {
+                            delete args[1].headers['Referer'];
+                            delete args[1].headers['Origin'];
+                        }
                     }
                     return originalFetch.apply(this, args);
                 };
@@ -119,12 +141,19 @@ app.get('/api/proxy', async (req, res) => {
                     return originalSetRequestHeader.apply(this, arguments);
                 };
                 
-                // Add headers after open but before send
+                // Intercept XMLHttpRequest to proxy API requests
                 const originalSend = XMLHttpRequest.prototype.send;
                 XMLHttpRequest.prototype.send = function(...args) {
                     if (this._url && (this._url.includes('joada.net') || this._url.includes('platforms6.joada.net'))) {
-                        this.setRequestHeader('Referer', 'https://viewsurf.com/');
-                        this.setRequestHeader('Origin', 'https://viewsurf.com');
+                        // Detect proxy URL - use current page's origin
+                        const currentOrigin = window.location.origin;
+                        const proxyPath = currentOrigin.includes('netlify.app') 
+                            ? '/.netlify/functions/proxy'
+                            : (currentOrigin.includes('localhost') ? '/api/proxy' : '/.netlify/functions/proxy');
+                        const proxyUrl = currentOrigin + proxyPath + '?url=' + encodeURIComponent(this._url);
+                        // Re-open with proxied URL
+                        const method = this._method || 'GET';
+                        originalOpen.call(this, method, proxyUrl, true);
                     }
                     return originalSend.apply(this, args);
                 };
