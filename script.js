@@ -1,6 +1,8 @@
 // Webcam data structure
 // Webcams extracted from https://www.anglet-tourisme.com/webcams/
 const webcams = [
+    // DEBUGGING: Only Hossegor enabled for debugging
+    /*
     {
         id: 1,
         name: "Plage de la Petite Chambre d'Amour",
@@ -50,6 +52,7 @@ const webcams = [
         streamUrl: "https://pv.viewsurf.com/2134/Anglet-Plage-de-La-Barre-et-embouchure-de-l-Adour",
         streamType: "iframe"
     },
+    */
     {
         id: 8,
         name: "Hossegor - La Centrale",
@@ -57,6 +60,7 @@ const webcams = [
         streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=ed952023-5809-4800-3636-3230-6d61-63-8434-ef51ef1b3c2dd&type=vod&liveicon=0&vsheader=1&tz=Europe/Paris&tsp=1766928003&titletext=",
         streamType: "iframe"
     },
+    /*
     {
         id: 9,
         name: "Biarritz - La Grande Plage",
@@ -113,6 +117,7 @@ const webcams = [
         streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=4ec957fc-fea2-49f2-3530-3130-6d61-63-872c-0869d3d9cef1d&type=live&liveicon=1&vsheader=1&tz=Europe/Paris&tsp=1766387031&titletext=",
         streamType: "iframe"
     }
+    */
 ];
 
 // Configuration: Proxy settings for joada.net URLs (bypasses 403 errors when hosted)
