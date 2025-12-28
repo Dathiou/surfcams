@@ -55,9 +55,15 @@ app.get('/api/proxy', async (req, res) => {
         const decodedUrl = decodeURIComponent(targetUrl);
         
         // Validate that it's a joada.net URL (security measure)
-        if (!decodedUrl.includes('joada.net') && !decodedUrl.includes('platforms5.joada.net')) {
+        // Allow both platforms5 (HTML embeds) and platforms6 (API endpoints)
+        if (!decodedUrl.includes('joada.net') && 
+            !decodedUrl.includes('platforms5.joada.net') && 
+            !decodedUrl.includes('platforms6.joada.net')) {
             return res.status(403).json({ error: 'Only joada.net URLs are allowed' });
         }
+        
+        // Check if this is an API request (JSON response expected)
+        const isApiRequest = decodedUrl.includes('/api/') || decodedUrl.includes('platforms6.joada.net');
 
         // Fetch the content from joada.net
         // Set headers to mimic a request from viewsurf.com
