@@ -540,6 +540,49 @@ Si un propriétaire demande de retirer une webcam :
 2. **Certains flux peuvent être lourds** - attendez le chargement
 3. **Vérifiez que les URLs fonctionnent sur mobile**
 
+### Erreur 403 Forbidden sur les webcams joada.net (en ligne uniquement)
+
+**Symptôme :** Les webcams utilisant `platforms5.joada.net` fonctionnent en local mais affichent "403 Forbidden" quand le site est hébergé en ligne.
+
+**Cause :** Le serveur joada.net vérifie le header HTTP Referer et bloque les requêtes provenant de domaines non autorisés. C'est une protection anti-embed mise en place par le serveur.
+
+**Solutions :**
+
+#### Solution 1 : Activer le proxy CORS (dans script.js)
+
+Ouvrez `script.js` et changez `USE_CORS_PROXY` à `true` :
+
+```javascript
+// Ligne ~118 dans script.js
+const USE_CORS_PROXY = true; // Changez false en true
+```
+
+**Note :** Les proxies CORS peuvent être lents et instables. Testez bien avant de déployer.
+
+#### Solution 2 : Chercher des alternatives pv.viewsurf.com
+
+Les URLs `pv.viewsurf.com` fonctionnent généralement mieux. Vérifiez sur [viewsurf.com](https://viewsurf.com) si des alternatives existent pour vos webcams.
+
+#### Solution 3 : Contacter les propriétaires
+
+Contactez les propriétaires des webcams (viewsurf, gosurf) pour :
+- Demander la permission d'embed
+- Obtenir des URLs d'embed officielles
+- Demander à être ajouté à la liste blanche des domaines autorisés
+
+#### Solution 4 : Utiliser un serveur proxy (Solution avancée)
+
+Si vous avez accès à un serveur backend, créez un proxy qui :
+- Récupère les streams depuis joada.net
+- Les sert à votre site avec les bons headers
+- Contourne les restrictions de referrer
+
+Cela nécessite des connaissances en développement backend (Node.js, Python, etc.).
+
+#### Solution 5 : Héberger sur le même domaine (Non recommandé)
+
+Théoriquement, si vous hébergez votre site sur un sous-domaine autorisé, cela pourrait fonctionner, mais ce n'est généralement pas possible.
+
 ### Comment rafraîchir une webcam manuellement
 
 Ouvrez la console du navigateur (`F12`) et tapez :

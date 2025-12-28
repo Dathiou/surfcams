@@ -115,6 +115,11 @@ const webcams = [
     }
 ];
 
+// Configuration: Set to true to use CORS proxy for joada.net URLs (helps with 403 errors when hosted)
+// Note: CORS proxies can be slow and unreliable. Use only if necessary.
+const USE_CORS_PROXY = false;
+const CORS_PROXY_URL = 'https://corsproxy.io/?'; // Alternative: 'https://api.allorigins.win/raw?url='
+
 // Initialize the webcam grid when page loads
 document.addEventListener('DOMContentLoaded', function() {
     // Update timestamps in URLs that have them (to ensure they're current)
@@ -135,6 +140,18 @@ function updateUrlTimestamps() {
             webcam.streamUrl = webcam.streamUrl.replace(/tsp=\d+/, `tsp=${currentTimestamp}`);
         }
     });
+}
+
+/**
+ * Wraps a URL with a CORS proxy if needed
+ * @param {string} url - Original URL
+ * @returns {string} - URL with proxy if needed
+ */
+function wrapUrlWithProxy(url) {
+    if (USE_CORS_PROXY && (url.includes('joada.net') || url.includes('platforms5.joada.net'))) {
+        return CORS_PROXY_URL + encodeURIComponent(url);
+    }
+    return url;
 }
 
 /**
@@ -270,10 +287,22 @@ function createStreamElement(webcam) {
 function createIframeStream(url) {
     const iframe = document.createElement('iframe');
     iframe.className = 'webcam-iframe';
-    iframe.src = url;
+    
+    // Apply proxy if configured and needed
+    const finalUrl = wrapUrlWithProxy(url);
+    iframe.src = finalUrl;
+    
     iframe.allowFullscreen = true;
     iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media');
     iframe.setAttribute('loading', 'lazy');
+    
+    // Try to bypass referrer restrictions for joada.net URLs
+    // Note: This may not work if the server strictly checks referrers
+    if (url.includes('joada.net') || url.includes('platforms5.joada.net')) {
+        // Set referrer policy to try to bypass referrer checks
+        iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+    }
+    
     return iframe;
 }
 
