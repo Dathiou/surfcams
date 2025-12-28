@@ -52,11 +52,62 @@ const webcams = [
     },
     {
         id: 8,
-        name: "Panoramique de la Chambre d'Amour",
-        location: "Anglet",
-        streamUrl: "https://www.skaping.com/anglet/chambre-d-amour",
+        name: "Hossegor - La Centrale",
+        location: "Hossegor",
+        streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=8220d0f6-0fd5-4bff-3636-3230-6d61-63-a866-a1fb6cab20f3d&type=vod&liveicon=0&vsheader=1&tz=Europe/Paris&tsp=1766860204&titletext=",
+        streamType: "iframe"
+    },
+    {
+        id: 9,
+        name: "Biarritz - La Grande Plage",
+        location: "Biarritz",
+        streamUrl: "https://pv.viewsurf.com/2268/Biarritz-Grande-Plage-Quikislver?i=Nzk4NDp1bmRlZmluZWQ",
+        streamType: "iframe"
+    },
+    {
+        id: 10,
+        name: "Seignosse - Plage du Penon",
+        location: "Seignosse",
+        streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=8da4aff9-9afb-47ce-3937-3430-6d61-63-b10b-bae5e6dead40d&type=live&liveicon=1&vsheader=1&tz=Europe/Paris&tsp=1766387031&titletext=",
+        streamType: "iframe"
+    },
+    {
+        id: 11,
+        name: "Seignosse - Plage des Estagnots",
+        location: "Seignosse",
+        streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=9a61c3c0-c7be-4d68-3937-3430-6d61-63-87dc-96c2f900dc81d&type=vod&liveicon=0&vsheader=1&tz=Europe/Paris&tsp=1766923209&titletext=",
+        streamType: "iframe"
+    },
+    {
+        id: 12,
+        name: "Seignosse - Plage des Bourdaines",
+        location: "Seignosse",
+        streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=4824e7f0-6c78-48c6-3937-3430-6d61-63-85b2-90e219846b88d&type=vod&liveicon=0&vsheader=1&tz=Europe/Paris&tsp=1766925012&titletext=",
+        streamType: "iframe"
+    },
+    {
+        id: 13,
+        name: "Seignosse - Plage du Penon (Live)",
+        location: "Seignosse",
+        streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=0c5055bb-8a96-4c3c-3837-3430-6d61-63-943b-480da283f7bed&type=live&liveicon=1&vsheader=1&tz=Europe/Paris&tsp=1766387023&titletext=",
+        streamType: "iframe"
+    },
+    {
+        id: 14,
+        name: "Seignosse - Général",
+        location: "Seignosse",
+        streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=8da4aff9-9afb-47ce-3937-3430-6d61-63-b10b-bae5e6dead40d&type=live&liveicon=1&vsheader=1&tz=Europe/Paris&tsp=1766387031&titletext=",
+        streamType: "iframe"
+    },
+    {
+        id: 15,
+        name: "Saint Jean de Luz - Sainte Barbe",
+        location: "Saint Jean de Luz",
+        streamUrl: "https://platforms5.joada.net/embeded/embeded.html?uuid=5c6c4cdb-a774-4da4-3533-3430-6d61-63-b749-ba239a7f9e53d&type=vod&liveicon=0&vsheader=1&tz=Europe/Paris&tsp=1766926809&titletext=",
         streamType: "iframe"
     }
+    // Note: Biarritz - Côte des Basques doesn't have a working embed-only URL available
+    // The webcam-hd.fr URL redirects and doesn't work for embedding
 ];
 
 // Initialize the webcam grid when page loads
