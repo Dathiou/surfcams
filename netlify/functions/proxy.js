@@ -131,7 +131,8 @@ exports.handler = async (event, context) => {
                 const originalFetch = window.fetch;
                 window.fetch = function(...args) {
                     let url = typeof args[0] === 'string' ? args[0] : args[0].url;
-                    if (url && (url.includes('joada.net') || url.includes('platforms6.joada.net'))) {
+                    // Proxy ALL joada.net requests (platforms5, platforms6, or any subdomain)
+                    if (url && url.includes('joada.net')) {
                         // Don't proxy if already proxied
                         if (!url.includes('/.netlify/functions/proxy') && !url.includes('/api/proxy')) {
                             const proxiedUrl = getProxyUrl(url);
@@ -157,8 +158,8 @@ exports.handler = async (event, context) => {
                 XMLHttpRequest.prototype.open = function(method, url, ...rest) {
                     this._method = method;
                     this._originalUrl = url;
-                    // If this is a joada.net API request, proxy it immediately
-                    if (url && (url.includes('joada.net') || url.includes('platforms6.joada.net'))) {
+                    // Proxy ALL joada.net requests (platforms5, platforms6, or any subdomain)
+                    if (url && url.includes('joada.net')) {
                         // Don't proxy if already proxied
                         if (!url.includes('/.netlify/functions/proxy') && !url.includes('/api/proxy')) {
                             const proxiedUrl = getProxyUrl(url);
