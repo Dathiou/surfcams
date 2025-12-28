@@ -33,7 +33,10 @@ exports.handler = async (event, context) => {
         const decodedUrl = decodeURIComponent(targetUrl);
         
         // Validate that it's a joada.net URL (security measure)
-        if (!decodedUrl.includes('joada.net') && !decodedUrl.includes('platforms5.joada.net')) {
+        // Allow both platforms5 (HTML embeds) and platforms6 (API endpoints)
+        if (!decodedUrl.includes('joada.net') && 
+            !decodedUrl.includes('platforms5.joada.net') && 
+            !decodedUrl.includes('platforms6.joada.net')) {
             return {
                 statusCode: 403,
                 headers: {
@@ -42,6 +45,9 @@ exports.handler = async (event, context) => {
                 body: JSON.stringify({ error: 'Only joada.net URLs are allowed' })
             };
         }
+        
+        // Check if this is an API request (JSON response expected)
+        const isApiRequest = decodedUrl.includes('/api/') || decodedUrl.includes('platforms6.joada.net');
 
         // Fetch the content from joada.net
         // Set headers to mimic a request from viewsurf.com
@@ -61,11 +67,34 @@ exports.handler = async (event, context) => {
         if (!response.ok) {
             return {
                 statusCode: response.status,
-                body: `Error: ${response.statusText}`
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({ error: response.statusText })
             };
         }
 
-        // Get the HTML content
+        // Handle API requests (JSON responses)
+        if (isApiRequest) {
+            const contentType = response.headers.get('content-type') || '';
+            const data = contentType.includes('application/json') 
+                ? await response.json() 
+                : await response.text();
+            
+            return {
+                statusCode: 200,
+                headers: {
+                    'Content-Type': contentType || 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type, Referer, Origin'
+                },
+                body: typeof data === 'string' ? data : JSON.stringify(data)
+            };
+        }
+
+        // Get the HTML content (for embed pages)
         let html = await response.text();
         
         // Modify the HTML to fix relative URLs
@@ -85,15 +114,19 @@ exports.handler = async (event, context) => {
                     configurable: true
                 });
                 
-                // Intercept fetch requests to add proper headers
+                // Intercept fetch requests to proxy through our server
                 const originalFetch = window.fetch;
                 window.fetch = function(...args) {
                     const url = typeof args[0] === 'string' ? args[0] : args[0].url;
                     if (url && (url.includes('joada.net') || url.includes('platforms6.joada.net'))) {
-                        if (!args[1]) args[1] = {};
-                        if (!args[1].headers) args[1].headers = {};
-                        args[1].headers['Referer'] = 'https://viewsurf.com/';
-                        args[1].headers['Origin'] = 'https://viewsurf.com';
+                        // Proxy API requests through our Netlify function
+                        const proxyUrl = window.location.origin + '/.netlify/functions/proxy?url=' + encodeURIComponent(url);
+                        args[0] = proxyUrl;
+                        // Remove headers that might cause issues
+                        if (args[1] && args[1].headers) {
+                            delete args[1].headers['Referer'];
+                            delete args[1].headers['Origin'];
+                        }
                     }
                     return originalFetch.apply(this, args);
                 };
@@ -114,12 +147,15 @@ exports.handler = async (event, context) => {
                     return originalSetRequestHeader.apply(this, arguments);
                 };
                 
-                // Add headers after open but before send
+                // Intercept XMLHttpRequest to proxy API requests
                 const originalSend = XMLHttpRequest.prototype.send;
                 XMLHttpRequest.prototype.send = function(...args) {
                     if (this._url && (this._url.includes('joada.net') || this._url.includes('platforms6.joada.net'))) {
-                        this.setRequestHeader('Referer', 'https://viewsurf.com/');
-                        this.setRequestHeader('Origin', 'https://viewsurf.com');
+                        // Proxy API requests through our Netlify function
+                        const proxyUrl = window.location.origin + '/.netlify/functions/proxy?url=' + encodeURIComponent(this._url);
+                        // Re-open with proxied URL
+                        const method = this._method || 'GET';
+                        originalOpen.call(this, method, proxyUrl, true);
                     }
                     return originalSend.apply(this, args);
                 };
